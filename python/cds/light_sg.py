@@ -32,3 +32,6 @@ while x<1200:
 
     time.sleep(0.01)
     x=x+1
+
+exitonclick()
+GPIO.cleanup()
