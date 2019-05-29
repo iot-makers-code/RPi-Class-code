@@ -1,3 +1,4 @@
+// reference https://www.elecrow.com/wiki/index.php?title=Dust_Sensor-_DSM501A
 // Connect the Pin_3 of DSM501A to Arduino 5V
 // Connect the Pin_5 of DSM501A to Arduino GND
 // Connect the Pin_2 of DSM501A to Arduino D8
