@@ -28,7 +28,9 @@ void loop()
   endtime = millis();
   if ((endtime-starttime) > sampletime_ms)
   {
-    ratio = (lowpulseoccupancy-endtime+starttime + sampletime_ms)/(sampletime_ms*10.0);  // Integer percentage 0=>100
+    //ratio = (lowpulseoccupancy-endtime+starttime + sampletime_ms)/(sampletime_ms*10.0);  // Integer percentage 0=>100
+    ratio_persent = lowpulseoccupancy/(sampletime_ms*10.0);
+    ratio = ratio_persent/100; 
     concentration = 1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62; // using spec sheet curve
     Serial.print("lowpulseoccupancy:");
     Serial.print(lowpulseoccupancy);
