@@ -8,7 +8,9 @@
 #include<string.h>
 #define MINI_BUILTIN_LED  2
 
-char  ssid[32];
+#define VERSION  "v1.0.0 2019/07/08"
+
+char  SSID[32];
 const char* password = "12345678";
 WiFiServer server(80);
 
@@ -37,6 +39,8 @@ char str[256];
 void setup()
 {
   Serial.begin(115200);
+  delay(10);
+  Serial.println(VERSION);
   pinMode(pin,INPUT);
   pinMode(MINI_BUILTIN_LED, OUTPUT);
 
@@ -46,8 +50,8 @@ void setup()
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.print(myIP);
-  Serial.print(", WiFi ssid : ");
-  Serial.println(ssid);
+  Serial.print(", WiFi SSID : ");
+  Serial.println(SSID);
     
 
   memset(buf, 0x00, sizeof(buf));
@@ -102,9 +106,10 @@ void loop()
 		"<title>Air Concenturation</title>\r\n"
 		"</head>\r\n<body>\r\n"
 	  );
+      sprintf(str, "<div>Device : <span id='dv'>%s</span>, Version:<span id='vs'>%s</span></div>\r\n", SSID, VERSION); 
       sprintf(str, "<div>Last Time:<span id='ct'>%ld</span>, Count:<span id='cp'>%d</span></div>\r\n", millis(), buf_idx); 
       client.print(str);
-      client.print("<div>sensor</div>,<div>time</div>,<div>ratio(*100)</div>,<div>concenturtion</div>");
+      client.print("<div>sensor,time,ratio(*100),concenturtion</div>");
       
     if (req.indexOf("/get") == -1) {
       client.print("get");;
@@ -113,14 +118,14 @@ void loop()
       //for (i = 0; i<(int)buf_idx; i++) {
       for (i=buf_idx-1; i>=0; i--) {
       	if (buf[i].ts==0) continue;
-      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ra, buf[i].ds); 
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", SSID, buf[i].ts, buf[i].ra, buf[i].ds); 
       	//client.print(String(str))
       	client.print(str);
       }
       //for (i = buf_idx; i<buf_size;i++) {
       for (i=buf_size-1; i>=(int)buf_idx; i--) {
       	if (buf[i].ts==0) continue;
-      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ra, buf[i].ds); 
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", SSID, buf[i].ts, buf[i].ra, buf[i].ds); 
       	//client.print(String(str))
       	client.print(str);
       }
@@ -172,7 +177,7 @@ void setupWiFi()
   String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) + String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
   String AP_NameString = "Dust-" + macID;
-  AP_NameString.toCharArray(ssid, AP_NameString.length()+1);
+  AP_NameString.toCharArray(SSID, AP_NameString.length()+1);
   
-  WiFi.softAP(ssid, password);
+  WiFi.softAP(SSID, password);
 } 
