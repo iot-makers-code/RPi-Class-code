@@ -6,9 +6,8 @@
 // http://blog.naver.com/PostView.nhn?blogId=twophase&logNo=220709172472
 #include <ESP8266WiFi.h>
 #include<string.h>
+#define VERSION  "v1.1.0 2019/07/08"
 #define MINI_BUILTIN_LED  2
-
-#define VERSION  "v1.0.0 2019/07/08"
 
 char  SSID[32];
 const char* password = "12345678";
@@ -23,7 +22,6 @@ unsigned long lowpulseoccupancy = 0;
 float ratio = 0;
 float concentration = 0;
 float realratio = 0;
-
 
 #define buf_size 2880
 typedef struct _value {
@@ -52,7 +50,6 @@ void setup()
   Serial.print(myIP);
   Serial.print(", WiFi SSID : ");
   Serial.println(SSID);
-    
 
   memset(buf, 0x00, sizeof(buf));
   //for(int i=0; i< buf_size; i++) buf[i]=0;
@@ -170,14 +167,9 @@ void loop()
 void setupWiFi()
 {
   WiFi.mode(WIFI_AP);
-  
-  // Append the last two bytes of the MAC (HEX'd)
   uint8_t mac[WL_MAC_ADDR_LENGTH];
   WiFi.softAPmacAddress(mac);
-  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) + String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
-  macID.toUpperCase();
-  String AP_NameString = "Dust-" + macID;
-  AP_NameString.toCharArray(SSID, AP_NameString.length()+1);
-  
+  sprintf(SSID, "DUST-%02X%02X", mac[WL_MAC_ADDR_LENGTH - 2], mac[WL_MAC_ADDR_LENGTH - 1]);
+  Serial.println(SSID);
   WiFi.softAP(SSID, password);
 } 
