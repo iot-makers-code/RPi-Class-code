@@ -6,7 +6,7 @@
 // http://blog.naver.com/PostView.nhn?blogId=twophase&logNo=220709172472
 #include <ESP8266WiFi.h>
 #include<string.h>
-#define VERSION  "v1.1.0 2019/07/08"
+#define VERSION  "v1.1.01 2019/07/08"
 #define MINI_BUILTIN_LED  2
 
 char  SSID[32];
@@ -46,10 +46,10 @@ void setup()
   server.begin();
 
   IPAddress myIP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.print(myIP);
-  Serial.print(", WiFi SSID : ");
-  Serial.println(SSID);
+  Serial.print("WiFi SSID : ");
+  Serial.print(SSID);
+  Serial.print(", AP IP address: ");
+  Serial.println(myIP);
 
   memset(buf, 0x00, sizeof(buf));
   //for(int i=0; i< buf_size; i++) buf[i]=0;
@@ -103,8 +103,9 @@ void loop()
 		"<title>Air Concenturation</title>\r\n"
 		"</head>\r\n<body>\r\n"
 	  );
-      sprintf(str, "<div>Device : <span id='dv'>%s</span>, Version:<span id='vs'>%s</span></div>\r\n", SSID, VERSION); 
-      sprintf(str, "<div>Last Time:<span id='ct'>%ld</span>, Count:<span id='cp'>%d</span></div>\r\n", millis(), buf_idx); 
+      sprintf(str, "<div>Devic :<span id='dv'>%s</span>, %s </div>\r\n", SSID, VERSION); 
+      client.print(str);
+      sprintf(str, "<div>Last Time:<span id='ct'>%ld</span>, Count:<span id='cp'>%d</span></div><hr>\r\n", millis(), buf_idx); 
       client.print(str);
       client.print("<div>sensor,time,ratio(*100),concenturtion</div>");
       
@@ -129,7 +130,7 @@ void loop()
     } 
 
     client.print(
-		"<div style='font-size:0.8em;'>(c)2019 <em>anhive</em> All Rights Reserved.</div>\r\n"
+		"<hr><div style='font-size:0.8em;'>(c)2019 <em>anhive</em> All Rights Reserved.</div>\r\n"
 		"<script>\r\n"
 		"Date.prototype.yyyymmdd = function() {"
 		"var mm = this.getMonth() + 1;"
@@ -170,6 +171,5 @@ void setupWiFi()
   uint8_t mac[WL_MAC_ADDR_LENGTH];
   WiFi.softAPmacAddress(mac);
   sprintf(SSID, "DUST-%02X%02X", mac[WL_MAC_ADDR_LENGTH - 2], mac[WL_MAC_ADDR_LENGTH - 1]);
-  Serial.println(SSID);
   WiFi.softAP(SSID, password);
 } 
