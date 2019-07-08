@@ -66,7 +66,7 @@ void loop()
       digitalWrite(MINI_BUILTIN_LED, LOW);
       ratio = lowpulseoccupancy/(sampletime_ms*10.0);  // Integer percentage 0=>100
       realratio = ratio/100;
-      concentration = 1.1*pow(realratio,3)-3.8*pow(realratio,2)+520*realratio+0.62; // using spec sheet curve
+      concentration = lowpulseoccupancy; //1.1*pow(realratio,3)-3.8*pow(realratio,2)+520*realratio+0.62; // using spec sheet curve
       buf[buf_idx].ts = endtime;
       buf[buf_idx].ds = (int)concentration;
       Serial.print(buf[buf_idx].ds);
@@ -105,14 +105,14 @@ void loop()
       //for (i = 0; i<(int)buf_idx; i++) {
       for (i=buf_idx-1; i>=0; i--) {
       	if (buf[i].ts==0) continue;
-      	sprintf(str, "<div>%s\t<span class='ts'>%ld</span>\t<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
       	//client.print(String(str))
       	client.print(str);
       }
       //for (i = buf_idx; i<buf_size;i++) {
       for (i=buf_size-1; i>=(int)buf_idx; i--) {
       	if (buf[i].ts==0) continue;
-      	sprintf(str, "<div>%s\t<span class='ts'>%ld</span>\t<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
       	//client.print(String(str))
       	client.print(str);
       }
