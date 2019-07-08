@@ -6,6 +6,7 @@
 // http://blog.naver.com/PostView.nhn?blogId=twophase&logNo=220709172472
 #include <ESP8266WiFi.h>
 #include<string.h>
+#define MINI_BUILTIN_LED  2
 
 char  ssid[32];
 const char* password = "12345678";
@@ -36,6 +37,7 @@ void setup()
 {
   Serial.begin(115200);
   pinMode(pin,INPUT);
+  pinMode(MINI_BUILTIN_LED, OUTPUT);
 
   setupWiFi();
   server.begin();
@@ -43,6 +45,8 @@ void setup()
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
+  Serial.print(", WiFi ssid : ");
+  Serial.println(ssid);
     
 
   memset(buf, 0x00, sizeof(buf));
@@ -54,11 +58,12 @@ void loop()
   // Check if a client has connected
   WiFiClient client = server.available();
   if (!client) {
-    duration = pulseIn(pin, LOW);
+    duration = pulseIn(pin, HIGH);
     lowpulseoccupancy += duration;
     endtime = millis();
     if ((endtime-starttime) > sampletime_ms)
     {
+      digitalWrite(MINI_BUILTIN_LED, LOW);
       ratio = lowpulseoccupancy/(sampletime_ms*10.0);  // Integer percentage 0=>100
       realratio = ratio/100;
       concentration = 1.1*pow(realratio,3)-3.8*pow(realratio,2)+520*realratio+0.62; // using spec sheet curve
@@ -69,8 +74,10 @@ void loop()
       if (buf_idx >= buf_size) buf_idx = 0;
       lowpulseoccupancy = 0;
       Serial.println("");
+      delay(1000);
+      digitalWrite(MINI_BUILTIN_LED, HIGH);
       starttime = millis();
-      }
+    } 
   } else { 
 
     // Read the first line of the request
@@ -78,6 +85,7 @@ void loop()
     Serial.println(req);
     client.flush();
 
+	digitalWrite(MINI_BUILTIN_LED, LOW);
     client.print(
 		"HTTP/1.1 200 OK\r\n"
 		"Content-Type: text/html\r\n\r\n"
@@ -139,6 +147,7 @@ void loop()
 		"</body>\r\n</html>\r\n"
 		);
     delay(1);
+    digitalWrite(MINI_BUILTIN_LED, HIGH);
     Serial.println("Client disonnected");
   }
 }
