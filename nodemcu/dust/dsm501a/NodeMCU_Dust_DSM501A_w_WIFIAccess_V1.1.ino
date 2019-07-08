@@ -26,6 +26,7 @@ float realratio = 0;
 #define buf_size 2880
 typedef struct _value {
 	long ts;
+	int  ra;
 	int  ds;
 } Value;
 
@@ -44,7 +45,7 @@ void setup()
 
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
-  Serial.println(myIP);
+  Serial.print(myIP);
   Serial.print(", WiFi ssid : ");
   Serial.println(ssid);
     
@@ -65,15 +66,21 @@ void loop()
     {
       digitalWrite(MINI_BUILTIN_LED, LOW);
       ratio = lowpulseoccupancy/(sampletime_ms*10.0);  // Integer percentage 0=>100
-      realratio = ratio/100;
-      concentration = lowpulseoccupancy; //1.1*pow(realratio,3)-3.8*pow(realratio,2)+520*realratio+0.62; // using spec sheet curve
+      realratio = ratio;
+      concentration = 1.1*pow(realratio,3)-3.8*pow(realratio,2)+520*realratio+0.62; // using spec sheet curve
       buf[buf_idx].ts = endtime;
-      buf[buf_idx].ds = (int)concentration;
+      buf[buf_idx].ra = (int)(realratio*100);
+      buf[buf_idx].ds = (int)(concentration);
+      Serial.print("ratio :");
+      Serial.print(ratio);
+      Serial.print("/");
+      Serial.print(buf[buf_idx].ra);
+      Serial.print(", concenturation :");
       Serial.print(buf[buf_idx].ds);
+      Serial.println("");
       buf_idx++;
       if (buf_idx >= buf_size) buf_idx = 0;
       lowpulseoccupancy = 0;
-      Serial.println("");
       delay(1000);
       digitalWrite(MINI_BUILTIN_LED, HIGH);
       starttime = millis();
@@ -97,6 +104,7 @@ void loop()
 	  );
       sprintf(str, "<div>Last Time:<span id='ct'>%ld</span>, Count:<span id='cp'>%d</span></div>\r\n", millis(), buf_idx); 
       client.print(str);
+      client.print("<div>sensor</div>,<div>time</div>,<div>ratio(*100)</div>,<div>concenturtion</div>");
       
     if (req.indexOf("/get") == -1) {
       client.print("get");;
@@ -105,14 +113,14 @@ void loop()
       //for (i = 0; i<(int)buf_idx; i++) {
       for (i=buf_idx-1; i>=0; i--) {
       	if (buf[i].ts==0) continue;
-      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ra, buf[i].ds); 
       	//client.print(String(str))
       	client.print(str);
       }
       //for (i = buf_idx; i<buf_size;i++) {
       for (i=buf_size-1; i>=(int)buf_idx; i--) {
       	if (buf[i].ts==0) continue;
-      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ra, buf[i].ds); 
       	//client.print(String(str))
       	client.print(str);
       }
