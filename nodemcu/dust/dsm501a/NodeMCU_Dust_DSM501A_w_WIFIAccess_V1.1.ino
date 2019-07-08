@@ -102,13 +102,15 @@ void loop()
       client.print("get");;
     } else {
       int i;
-      for (i = buf_idx; i<buf_size;i++) {
+      //for (i = 0; i<(int)buf_idx; i++) {
+      for (i=buf_idx-1; i>=0; i--) {
       	if (buf[i].ts==0) continue;
       	sprintf(str, "<div>%s\t<span class='ts'>%ld</span>\t<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
       	//client.print(String(str))
       	client.print(str);
       }
-      for (i = 0; i<(int)buf_idx; i++) {
+      //for (i = buf_idx; i<buf_size;i++) {
+      for (i=buf_size-1; i>=(int)buf_idx; i--) {
       	if (buf[i].ts==0) continue;
       	sprintf(str, "<div>%s\t<span class='ts'>%ld</span>\t<span class='ds'>%d</span></div>\r\n", ssid, buf[i].ts, buf[i].ds); 
       	//client.print(String(str))
