@@ -1,0 +1,219 @@
+// https://www.elecrow.com/wiki/index.php?title=Dust_Sensor-_DSM501A
+// Connect the Pin_3 of DSM501A to nodeMCU 5V(Vin)
+// Connect the Pin_5 of DSM501A to nodeMCU GND
+// Connect the Pin_2 of DSM501A to nodeMCU D8
+// www.elecrow.com
+// http://blog.naver.com/PostView.nhn?blogId=twophase&logNo=220709172472
+#include <ESP8266WiFi.h>
+#include<string.h>
+#define VERSION  "v1.2.00 2019/07/14"
+#define MINI_BUILTIN_LED  2
+
+char  SSID[32];
+const char* password = "12345678";
+WiFiServer server(80);
+
+int pin = 15;//DSM501A input on NOdeMCU D8
+unsigned long duration;
+unsigned long starttime;
+unsigned long endtime;
+unsigned long sampletime_ms = 30000;
+unsigned long lowpulseoccupancy = 0;
+float ratio = 0;
+float concentration = 0;
+float realratio = 0;
+
+#define buf_size 2880
+typedef struct _value {
+	long ts;
+	int  ra;
+	int  ds;
+} Value;
+
+Value buf[buf_size];
+unsigned int  buf_idx = 0;
+char str[256];
+ 
+void setup()
+{
+  Serial.begin(115200);
+  delay(10);
+  Serial.println(VERSION);
+  pinMode(pin,INPUT);
+  pinMode(MINI_BUILTIN_LED, OUTPUT);
+
+  setupWiFi();
+  server.begin();
+
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("WiFi SSID : ");
+  Serial.print(SSID);
+  Serial.print(", AP IP address: ");
+  Serial.println(myIP);
+
+  memset(buf, 0x00, sizeof(buf));
+  //for(int i=0; i< buf_size; i++) buf[i]=0;
+  starttime = millis(); 
+}
+void loop()
+{
+  // Check if a client has connected
+  WiFiClient client = server.available();
+  if (!client) {
+    duration = pulseIn(pin, HIGH);
+    lowpulseoccupancy += duration;
+    endtime = millis();
+    if ((endtime-starttime) > sampletime_ms)
+    {
+      digitalWrite(MINI_BUILTIN_LED, LOW);
+      ratio = lowpulseoccupancy/(sampletime_ms*10.0);  // Integer percentage 0=>100
+      realratio = ratio;
+      concentration = 1.1*pow(realratio,3)-3.8*pow(realratio,2)+520*realratio+0.62; // using spec sheet curve
+      buf[buf_idx].ts = endtime;
+      buf[buf_idx].ra = (int)(realratio*100);
+      buf[buf_idx].ds = (int)(concentration);
+      Serial.print("ratio :");
+      Serial.print(ratio);
+      Serial.print("/");
+      Serial.print(buf[buf_idx].ra);
+      Serial.print(", concenturation :");
+      Serial.print(buf[buf_idx].ds);
+      Serial.println("");
+      buf_idx++;
+      if (buf_idx >= buf_size) buf_idx = 0;
+      lowpulseoccupancy = 0;
+      delay(1000);
+      digitalWrite(MINI_BUILTIN_LED, HIGH);
+      starttime = millis();
+    } 
+  } else { 
+
+    // Read the first line of the request
+    String req = client.readStringUntil('\r');
+    Serial.println(req);
+    client.flush();
+
+	digitalWrite(MINI_BUILTIN_LED, LOW);
+    client.print(
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: text/html\r\n\r\n"
+		"<!DOCTYPE HTML>\r\n<html>\r\n"
+		"<meta name='viewport' content='width=device-width, initial-scale=1.0'>\r\n"
+		"<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>\r\n"
+		"<title>Air Concenturation</title>\r\n"
+		"</head>\r\n<body>\r\n"
+	  );
+      sprintf(str, "<div>Device :<span id='dv'>%s</span>, %s </div>\r\n", SSID, VERSION); 
+      client.print(str);
+      sprintf(str, "<div>Sensor Time:<span id='ct'>%ld</span>, Count:<span id='cp'>%d</span></div>\r\n", millis(), buf_idx); 
+      client.print(str);
+      client.print("<div style='width:100%'><canvas id='canvas' width='200' height='208'></canvas></div>");
+      client.print("<div>sensor,time,ratio(*100),concenturtion</div>");
+      
+    if (req.indexOf("/get") == -1) {
+      client.print("get");;
+    } else {
+      int i;
+      //for (i = 0; i<(int)buf_idx; i++) {
+      for (i=buf_idx-1; i>=0; i--) {
+      	if (buf[i].ts==0) continue;
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", SSID, buf[i].ts, buf[i].ra, buf[i].ds); 
+      	//client.print(String(str))
+      	client.print(str);
+      }
+      //for (i = buf_idx; i<buf_size;i++) {
+      for (i=buf_size-1; i>=(int)buf_idx; i--) {
+      	if (buf[i].ts==0) continue;
+      	sprintf(str, "<div>%s,<span class='ts'>%ld</span>,<span class='ra'>%d</span>,<span class='ds'>%d</span></div>\r\n", SSID, buf[i].ts, buf[i].ra, buf[i].ds); 
+      	//client.print(String(str))
+      	client.print(str);
+      }
+    } 
+
+    client.print(
+		"<hr><div style='font-size:0.8em;'>(c)2019 <em>anhive</em> All Rights Reserved.</div>\r\n"
+		"<script>\r\n"
+            "var ra = document.getElementsByClassName('ra');\r\n"
+            "var ds = document.getElementsByClassName('ds');\r\n"
+            "var ts = document.getElementsByClassName('ts');\r\n"
+            "function draw() {\r\n"
+            " var canvas = document.getElementById('canvas');\r\n"
+            " if (null==canvas || !canvas.getContext) return;\r\n"
+            " var axes={}, ctx=canvas.getContext('2d');\r\n"
+            " ctx.canvas.width  = window.innerWidth*.95;\r\n"
+            " ctx.canvas.height = window.innerHeight*.25;\r\n"
+            " axes.x0 = .5;\r\n"
+            " axes.y0 = .5 + .95*canvas.height;\r\n"
+            " axes.ramax = Math.max.apply(Math,\r\n"
+            "              Array.from(ra).map(function(o) { return o.innerText; }));\r\n"
+            " axes.dsmax = Math.max.apply(Math,\r\n"
+            "              Array.from(ds).map(function(o) { return o.innerText; }));\r\n"
+            " axes.max = Math.max(axes.ramax,axes.dsmax);\r\n"
+            " axes.scale = 0.9 * canvas.height /  axes.max;\r\n"
+            " axes.unit = (canvas.width * .95) / ds.length;\r\n"
+            " axes.doNegativeX = false;\r\n"
+            " showAxes(ctx,axes);\r\n"
+            " doGraph(ctx,axes,ra,'rgb(11,153,11)',1);\r\n"
+            " doGraph(ctx,axes,ds,'rgb(66,44,255)',2);\r\n"
+            "};\r\n"
+            "\r\n"
+            "function doGraph (ctx,axes,data,color,thick) {\r\n"
+            " var xx, yy, dx=axes.unit, x0=axes.x0, y0=axes.y0, scale=axes.scale;\r\n"
+            " ctx.beginPath();\r\n"
+            " ctx.lineWidth = thick;\r\n"
+            " ctx.strokeStyle = color;\r\n"
+            " for (var i=0;i<data.length;i++) {\r\n"
+            "  xx = dx*i; yy = axes.scale*(data[(data.length-1)-i].innerText);\r\n"
+            "\r\n"
+            "  if (i==0) ctx.moveTo(x0+xx,y0-yy);\r\n"
+            "  else      ctx.lineTo(x0+xx,y0-yy);\r\n"
+            " };\r\n"
+            " ctx.stroke();\r\n"
+            "};\r\n"
+            "\r\n"
+            "function showAxes(ctx,axes) {\r\n"
+            " var x0=axes.x0, w=ctx.canvas.width;\r\n"
+            " var y0=axes.y0, h=ctx.canvas.height;\r\n"
+            " var xmin = axes.doNegativeX ? 0 : x0;\r\n"
+            " ctx.beginPath();\r\n"
+            " ctx.strokeStyle = 'rgb(128,128,128)';\r\n"
+            " ctx.moveTo(xmin,y0); ctx.lineTo(w,y0);\r\n"
+            " ctx.moveTo(x0,0);    ctx.lineTo(x0,h);\r\n"
+            " ctx.stroke();\r\n"
+            "};\r\n"
+            "draw();\r\n"
+            "\r\n"
+            "Date.prototype.datestr = function() {\r\n"
+            "var mm = this.getMonth() + 1;\r\n"
+            "var dd = this.getDate();\r\n"
+            "var hh = this.getHours();\r\n"
+            "var ii = this.getMinutes();\r\n"
+            "var ss = this.getSeconds();\r\n"
+            "return [(mm>9?'':'0') + mm,(dd>9?'/':'/0')\r\n"
+            "      + dd,(hh>9?' ':' 0') + hh,(ii>9?':':':0')\r\n"
+            "      + ii,(ss>9?':':':0') + ss].join('');\r\n"
+            "};\r\n"
+            "\r\n"
+            "rtime = parseInt(document.getElementById('ct').innerHTML);\r\n"
+            "lt = Date.now();\r\n"
+            "for (e of ts) {\r\n"
+            "  dt =  new Date(lt-rtime+parseInt(e.innerHTML));\r\n"
+            "  e.innerHTML=dt.datestr();\r\n"
+            "}\r\n"	
+		"</script>\r\n"
+		"</body>\r\n</html>\r\n"
+		);
+    delay(1);
+    digitalWrite(MINI_BUILTIN_LED, HIGH);
+    Serial.println("Client disonnected");
+  }
+}
+
+void setupWiFi()
+{
+  WiFi.mode(WIFI_AP);
+  uint8_t mac[WL_MAC_ADDR_LENGTH];
+  WiFi.softAPmacAddress(mac);
+  sprintf(SSID, "DUST-%02X%02X", mac[WL_MAC_ADDR_LENGTH - 2], mac[WL_MAC_ADDR_LENGTH - 1]);
+  WiFi.softAP(SSID, password);
+}
