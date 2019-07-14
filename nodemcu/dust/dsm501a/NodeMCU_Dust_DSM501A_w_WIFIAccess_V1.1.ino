@@ -107,7 +107,7 @@ void loop()
       client.print(str);
       sprintf(str, "<div>Last Time:<span id='ct'>%ld</span>, Count:<span id='cp'>%d</span></div><hr>\r\n", millis(), buf_idx); 
       client.print(str);
-      client.print("<div>sensor,time,ratio(*100),concenturtion</div>");
+      client.print("<div>sensor,time,ratio(*100),concentration</div>");
       
     if (req.indexOf("/get") == -1) {
       client.print("get");;
