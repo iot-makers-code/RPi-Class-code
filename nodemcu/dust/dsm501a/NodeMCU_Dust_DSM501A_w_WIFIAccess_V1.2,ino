@@ -108,7 +108,7 @@ void loop()
       sprintf(str, "<div>Sensor Time:<span id='ct'>%ld</span>, Count:<span id='cp'>%d</span></div>\r\n", millis(), buf_idx); 
       client.print(str);
       client.print("<div style='width:100%'><canvas id='canvas' width='200' height='208'></canvas></div>");
-      client.print("<div>sensor,time,ratio(*100),concenturtion</div>");
+      client.print("<div>sensor,time,ratio(*100),concentration</div>");
       
     if (req.indexOf("/get") == -1) {
       client.print("get");;
