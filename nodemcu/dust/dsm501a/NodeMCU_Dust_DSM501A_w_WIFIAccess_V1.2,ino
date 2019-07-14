@@ -6,7 +6,7 @@
 // http://blog.naver.com/PostView.nhn?blogId=twophase&logNo=220709172472
 #include <ESP8266WiFi.h>
 #include<string.h>
-#define VERSION  "v1.2.00 2019/07/14"
+#define VERSION  "v1.2.01 2019/07/14"
 #define MINI_BUILTIN_LED  2
 
 char  SSID[32];
