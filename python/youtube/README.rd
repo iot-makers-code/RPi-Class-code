@@ -1,13 +1,15 @@
 유투브 동영상을 다운로드 받는 방법을 배운다.
 1. 관련 프로그램 설치
     관련자료 참조 : https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme
-```bash    
+<pre><code>   
 sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
 sudo chmod a+rx /usr/local/bin/youtube-dl
 
 mkdir -p ~/bin
-```
+</code></pre>
+
 음악 다운로드 프로그램 만들기
+<pre><code>   
 cat << EOF > ~/bin/dl_mp3.sh
 #!/bin/bash
 #AnHive 2019
@@ -17,14 +19,20 @@ youtube-dl --extract-audio --audio-format mp3  -o "%(title)s.%(ext)s" \$1
 
 EOF
 chmod 775 ~/bin/dl_mp3.sh
+</code></pre>
 
 음악 다운로드하기
+<pre><code>   
 dl_mp3.sh https://www.youtube.com/watch?v=qwAfDM9x-oA
+</code></pre>
 
 음악 틀기
+<pre><code>   
 omxplayer -o local "New Songs of the Week - November 3, 2018.mp3"
+</code></pre>
 
 음악 일과 재상하기
+<pre><code>   
 cat << EOF > ~/bin/play_mp3.sh
 #!/bin/bash
 #AnHive 2019
@@ -36,10 +44,12 @@ do
 done 
 EOF
 chmod 755 ~/bin/play_mp3.sh
+</code></pre>
 
 
 
 동영상 다운로드 프로그래 만들기
+<pre><code>   
 cat << EOF > ~/bin/dl_mp4.sh
 #!/bin/bash
 #AnHive 2019
@@ -50,13 +60,20 @@ youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \$1
 EOF
 
 chmod 775 ~/bin/dl_mp4.sh
+</code></pre>
 
 음악다운로드 하기
+<pre><code>   
 dl_mp4.sh https://www.youtube.com/watch?v=qwAfDM9x-oA
+</code></pre>
+
 동영상 플레이
+<pre><code>   
 omxplayer -o local "New Songs of the Week - November 3, 2018-qwAfDM9x-oA.mp4"
+</code></pre>
 
 동영상 일괄 재생 프로그램 만들기
+<pre><code>   
 cat << EOF > ~/bin/play_mp4.sh
 #!/bin/bash
 #AnHive 2019
@@ -68,7 +85,10 @@ do
 done 
 EOF
 chmod 755 ~/bin/play_mp4.sh
+</code></pre>
 
 동영상 일괄재생
+<pre><code>   
 play_mp4.sh
+</code></pre>
 
