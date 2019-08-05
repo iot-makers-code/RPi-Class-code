@@ -1,12 +1,12 @@
 유투브 동영상을 다운로드 받는 방법을 배운다.
 1. 관련 프로그램 설치
     관련자료 참조 : https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme
-    
+```bash    
 sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
 sudo chmod a+rx /usr/local/bin/youtube-dl
 
 mkdir -p ~/bin
-
+```
 음악 다운로드 프로그램 만들기
 cat << EOF > ~/bin/dl_mp3.sh
 #!/bin/bash
