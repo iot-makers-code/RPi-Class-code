@@ -13,7 +13,7 @@ cat << EOF > ~/bin/dl_mp3.sh
 #AnHive 2019
 mkdir -p ~/mp3
 cd ~/mp3
-youtube-dl --extract-audio --audio-format mp3  -o "%(title)s.%(ext)s" $1
+youtube-dl --extract-audio --audio-format mp3  -o "%(title)s.%(ext)s" \$1
 
 EOF
 chmod 775 ~/bin/dl_mp3.sh
@@ -46,7 +46,7 @@ cat << EOF > ~/bin/dl_mp4.sh
 
 mkdir -p ~/mp4
 cd ~/mp4
-youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' $1
+youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \$1
 EOF
 
 chmod 775 ~/bin/dl_mp4.sh
