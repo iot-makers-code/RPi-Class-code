@@ -1,4 +1,3 @@
-rm camera/*
 python elapse.py  &
 
 cd camera
