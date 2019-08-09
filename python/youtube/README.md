@@ -23,7 +23,7 @@ chmod 775 ~/bin/dl_mp3.sh
 
 음악 다운로드하기
 <pre><code>   
-dl_mp3.sh https://www.youtube.com/watch?v=qwAfDM9x-oA
+bin/dl_mp3.sh https://www.youtube.com/watch?v=qwAfDM9x-oA
 </code></pre>
 
 음악 틀기
@@ -64,7 +64,7 @@ chmod 775 ~/bin/dl_mp4.sh
 
 음악다운로드 하기
 <pre><code>   
-dl_mp4.sh https://www.youtube.com/watch?v=qwAfDM9x-oA
+bin/dl_mp4.sh https://www.youtube.com/watch?v=qwAfDM9x-oA
 </code></pre>
 
 동영상 플레이
@@ -89,6 +89,6 @@ chmod 755 ~/bin/play_mp4.sh
 
 동영상 일괄재생
 <pre><code>   
-play_mp4.sh
+bin/play_mp4.sh
 </code></pre>
 
